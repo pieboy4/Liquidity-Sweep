@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquidity Sweep Trader V5</title>
+  <style>
+    :root{
+      --bg:#070b14; --panel:#111827; --panel2:#172033; --card:#1b2437; --line:#2b3b59;
+      --text:#f8fbff; --muted:#9db3d7; --blue:#5fa8ff; --violet:#a87cff; --green:#2ff59b;
+      --yellow:#ffd65f; --red:#ff5f7d; --orange:#ff9463; --shadow:0 18px 55px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at top left,#15213b 0,#070b14 35%,#04070d 100%);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
+    .wrap{max-width:1320px;margin:0 auto;padding:26px 18px 34px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:14px}.logo{width:50px;height:50px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--violet));box-shadow:0 0 38px rgba(95,168,255,.25)}
+    h1{font-size:30px;margin:0;font-weight:900;letter-spacing:-.03em}.sub{color:var(--muted);margin-top:5px;font-size:14px}
+    .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{padding:12px 16px;border:1px solid var(--line);border-radius:18px;background:rgba(23,32,51,.85);font-weight:800}.pill.green{color:var(--green)}
+    button{border:0;border-radius:15px;padding:13px 17px;color:white;font-weight:900;background:linear-gradient(135deg,var(--blue),var(--violet));cursor:pointer;box-shadow:0 12px 30px rgba(95,168,255,.14)}
+    button.dark{background:#28344b}button.red{background:linear-gradient(135deg,#ff4f6b,#ff8d5a)}button:disabled{opacity:.55;cursor:not-allowed}
+    .grid{display:grid;grid-template-columns:350px 1fr 330px;gap:18px}.panel{background:rgba(17,24,39,.9);border:1px solid var(--line);border-radius:23px;box-shadow:var(--shadow);padding:18px}.panel h2{margin:0 0 14px;font-size:19px}
+    .market{border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:12px;background:rgba(27,36,55,.85);cursor:pointer;transition:.18s}.market:hover,.market.active{border-color:var(--blue);transform:translateY(-1px)}
+    .marketHead{display:flex;align-items:center;justify-content:space-between}.market h3{margin:0 0 13px;font-size:21px}.badge{border-radius:999px;padding:7px 11px;font-size:12px;font-weight:1000;background:#333;color:var(--yellow)}.badge.setup{background:rgba(47,245,155,.15);color:var(--green)}.badge.no{background:rgba(255,95,125,.15);color:var(--red)}
+    .price{font-size:30px;font-weight:1000;letter-spacing:-.03em}.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:8px}.scoreBar{height:8px;border-radius:999px;background:#27344d;overflow:hidden;margin-top:12px}.scoreFill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0%}
+    .alertBox{border:1px solid rgba(255,214,95,.35);background:rgba(255,214,95,.08);color:#ffe58a;border-radius:15px;padding:12px 13px;font-size:13px;line-height:1.45;margin-top:10px}.okBox{border-color:rgba(47,245,155,.35);background:rgba(47,245,155,.08);color:#aaffd2}
+    .hero{display:grid;grid-template-columns:1fr 210px;gap:14px;margin-bottom:14px}.bigStat{background:linear-gradient(135deg,rgba(95,168,255,.18),rgba(168,124,255,.12));border:1px solid var(--line);border-radius:18px;padding:17px}.bigStat .label{color:var(--muted);font-size:13px}.bigStat .value{font-size:28px;font-weight:1000;margin-top:6px}.miniStats{display:grid;grid-template-columns:1fr;gap:10px}.mini{background:rgba(27,36,55,.9);border:1px solid var(--line);border-radius:15px;padding:13px}.mini .v{font-weight:1000;font-size:20px}.mini .l{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .chart{height:310px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(180deg,#18243a,#111827);position:relative;overflow:hidden;padding:20px}.axis{position:absolute;left:34px;right:34px;border-top:1px solid rgba(157,179,215,.12)}.axis.a1{top:44px}.axis.a2{top:126px}.axis.a3{top:208px}.axis.a4{top:270px}.levelLine{position:absolute;left:34px;right:34px;top:118px;border-top:1px dashed var(--yellow)}.levelLabel{position:absolute;top:100px;left:42px;color:var(--yellow);font-weight:900;font-size:12px}.dot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 7px rgba(95,168,255,.12);transform:translate(-50%,-50%)}.dot.dim{background:#314058;box-shadow:none}.dotLabel{position:absolute;transform:translate(-50%,-22px);font-size:12px;color:#b8ccf0}.dotPrice{position:absolute;transform:translate(-50%,11px);font-size:12px;color:#8eacd8}.path{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}.step{border:1px solid var(--line);background:rgba(27,36,55,.85);border-radius:13px;padding:10px;font-size:12px}.step.active{border-color:var(--blue);background:rgba(95,168,255,.12)}.step b{display:block;color:white;margin-bottom:2px}
+    .explain{border:1px solid rgba(255,214,95,.3);background:rgba(255,214,95,.07);border-radius:15px;margin-top:12px;padding:13px;color:#ffe897;font-weight:750;line-height:1.45}.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+    .ticketBox{border:1px solid var(--line);background:rgba(27,36,55,.85);border-radius:15px;padding:14px;margin-bottom:12px}.ticketBox .label{color:var(--muted);font-size:12px}.ticketBox .main{font-size:23px;font-weight:1000;margin-top:5px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.journal{max-height:210px;overflow:auto}.entry{border:1px solid var(--line);border-radius:13px;padding:10px;margin-top:8px;background:rgba(27,36,55,.75);font-size:13px}.footer{color:#8aa7d8;font-size:12px;margin-top:18px;line-height:1.4}
+    .small{font-size:12px;color:var(--muted)}
+    @media(max-width:1050px){.grid{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.steps{grid-template-columns:repeat(3,1fr)}header{align-items:flex-start;flex-direction:column}.topbar{justify-content:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><div class="logo"></div><div><h1>Liquidity Sweep Trader V5</h1><div class="sub">Replay-first day-trading learning cockpit · IBKR Paper Trading · Option A markets</div></div></div>
+      <div class="topbar"><div id="bridgePill" class="pill">Bridge: checking...</div><button onclick="checkBridge()">Check IBKR</button><button onclick="fetchSnapshot()">Fetch Snapshot</button></div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Market Radar</h2>
+        <div id="markets"></div>
+        <div class="alertBox"><b>School Run Mode:</b> click Fetch Snapshot before leaving, then again when you return. The system stores the last radar view and replay locally.</div>
+        <div class="alertBox okBox"><b>Safety:</b> V5 reads prices only. Keep TWS Read-Only API switched on until you deliberately move to paper order testing.</div>
+      </section>
+
+      <section class="panel">
+        <div class="hero">
+          <div class="bigStat"><div class="label">Best current setup</div><div id="bestSetup" class="value">Waiting for snapshot</div><div id="bestWhy" class="small">Press Fetch Snapshot to scan NASDAQ, S&P 500 and EUR/USD.</div></div>
+          <div class="miniStats"><div class="mini"><div class="l">Mode</div><div class="v">Read-only</div></div><div class="mini"><div class="l">Risk setting</div><div class="v">£1/test</div></div></div>
+        </div>
+        <h2>Replay Centre</h2>
+        <div class="chart" id="chart">
+          <svg class="path" id="pathSvg"></svg>
+          <div class="axis a1"></div><div class="axis a2"></div><div class="axis a3"></div><div class="axis a4"></div><div class="levelLine"></div><div class="levelLabel">session / recent level</div>
+        </div>
+        <div class="steps" id="steps"></div>
+        <div class="controls"><button onclick="playReplay()">▶ Play Replay</button><button class="dark" onclick="loadReplay(selectedSymbol)">Reset</button><button class="dark" onclick="loadDemo()">Demo</button></div>
+        <div id="explain" class="explain">Replay explains the story: level forms → sweep → reversal → entry → trade active → target.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Trade Ticket</h2>
+        <div class="ticketBox"><div class="label">System view</div><div id="systemView" class="main">WAIT</div></div>
+        <div class="two"><div class="ticketBox"><div class="label">Score</div><div id="ticketScore" class="main">--</div></div><div class="ticketBox"><div class="label">RR</div><div id="ticketRR" class="main">--</div></div></div>
+        <div class="two"><div class="ticketBox"><div class="label">Entry</div><div id="ticketEntry" class="main">--</div></div><div class="ticketBox"><div class="label">Stop</div><div id="ticketStop" class="main">--</div></div></div>
+        <div class="ticketBox"><div class="label">Target</div><div id="ticketTarget" class="main">--</div></div>
+        <div class="two"><button onclick="journal('TAKE')">TAKE</button><button class="red" onclick="journal('PASS')">PASS</button></div>
+        <h2 style="margin-top:20px">Journal</h2>
+        <div id="journal" class="journal"><div class="small">No entries yet.</div></div>
+      </section>
+    </div>
+
+    <div class="footer">V5 is a learning and paper-trading dashboard. It does not place live orders. If data shows “delayed”, it is useful for learning but not acceptable for true scalping execution.</div>
+  </div>
+
+<script>
+const API='http://127.0.0.1:5050';
+let selectedSymbol='NASDAQ';
+let snapshot=null; let replay=null; let currentStep=0;
+const names={NASDAQ:'NASDAQ 100',SP500:'S&P 500',EURUSD:'EUR/USD'};
+const journalKey='lst_v5_journal';
+
+function fmt(x){ if(x===null||x===undefined||Number.isNaN(x)) return '--'; return Number(x).toLocaleString(undefined,{maximumFractionDigits:5}); }
+function badgeClass(status){ return status==='SETUP'?'setup':status==='NO TRADE'?'no':''; }
+async function checkBridge(){
+  try{const r=await fetch(API+'/status'); const j=await r.json(); document.getElementById('bridgePill').textContent=j.connected?'Bridge: connected to TWS':'Bridge: not connected'; document.getElementById('bridgePill').className='pill '+(j.connected?'green':'');}
+  catch(e){document.getElementById('bridgePill').textContent='Bridge: not reachable'; document.getElementById('bridgePill').className='pill'; alert('Bridge not reachable. Start ibkr_bridge_v5.py first.');}
+}
+async function fetchSnapshot(){
+  const r=await fetch(API+'/api/snapshot'); snapshot=await r.json(); renderMarkets(); renderBest(); await loadReplay(selectedSymbol); localStorage.setItem('lst_v5_last_snapshot',JSON.stringify(snapshot));
+}
+function renderMarkets(){
+  const box=document.getElementById('markets'); box.innerHTML='';
+  for(const sym of ['NASDAQ','SP500','EURUSD']){
+    const s=snapshot.signals[sym]; const el=document.createElement('div'); el.className='market '+(sym===selectedSymbol?'active':''); el.onclick=()=>{selectedSymbol=sym; renderMarkets(); loadReplay(sym); updateTicket(s);};
+    el.innerHTML=`<div class="marketHead"><h3>${names[sym]}</h3><span class="badge ${badgeClass(s.status)}">${s.status}</span></div><div class="price">${fmt(s.price)}</div><div class="meta"><span>Score ${s.score}/100</span><span>${s.direction}</span></div><div class="scoreBar"><div class="scoreFill" style="width:${s.score}%"></div></div><div class="small" style="margin-top:8px">${s.source||''}</div>`;
+    box.appendChild(el);
+  }
+  updateTicket(snapshot.signals[selectedSymbol]);
+}
+function renderBest(){
+  const b=snapshot.best; document.getElementById('bestSetup').textContent=`${b.display}: ${b.status} (${b.score}/100)`; document.getElementById('bestWhy').textContent=b.reason;
+}
+function updateTicket(s){
+  const t=s.trade_ticket||{};
+  document.getElementById('systemView').textContent=(s.direction||'WAIT')+' '+(s.symbol||'');
+  document.getElementById('ticketScore').textContent=(s.score??'--')+'/100';
+  document.getElementById('ticketRR').textContent=t.rr?('1:'+t.rr):'--';
+  document.getElementById('ticketEntry').textContent=fmt(t.entry);
+  document.getElementById('ticketStop').textContent=fmt(t.stop);
+  document.getElementById('ticketTarget').textContent=fmt(t.target);
+  document.getElementById('explain').textContent=t.plain_english||s.reason||'Wait for a clean level attack first.';
+}
+async function loadReplay(sym){
+  try{ const r=await fetch(API+'/api/replay/'+sym); replay=await r.json(); currentStep=0; drawReplay(0); }
+  catch(e){ await loadDemo(); }
+}
+async function loadDemo(){ const r=await fetch(API+'/api/demo-replay'); replay=await r.json(); currentStep=0; drawReplay(0); }
+function drawReplay(active){
+  const chart=document.getElementById('chart'); chart.querySelectorAll('.dot,.dotLabel,.dotPrice').forEach(x=>x.remove());
+  document.getElementById('steps').innerHTML=''; const pts=replay.timeline; const prices=pts.map(p=>p.price); const min=Math.min(...prices), max=Math.max(...prices); const pad=(max-min)||1;
+  const coords=[];
+  pts.forEach((p,i)=>{ const x=34+i*((chart.clientWidth-68)/(pts.length-1)); const y=270-((p.price-min)/pad)*226; coords.push([x,y]); const d=document.createElement('div'); d.className='dot '+(i<=active?'':'dim'); d.style.left=x+'px'; d.style.top=y+'px'; chart.appendChild(d); const lab=document.createElement('div'); lab.className='dotLabel'; lab.style.left=x+'px'; lab.style.top=y+'px'; lab.textContent=p.label; chart.appendChild(lab); const pr=document.createElement('div'); pr.className='dotPrice'; pr.style.left=x+'px'; pr.style.top=y+'px'; pr.textContent=fmt(p.price); chart.appendChild(pr); });
+  const svg=document.getElementById('pathSvg'); svg.innerHTML=`<polyline points="${coords.map(c=>c.join(',')).join(' ')}" fill="none" stroke="rgba(95,168,255,.65)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  pts.forEach((p,i)=>{const s=document.createElement('div'); s.className='step '+(i===active?'active':''); s.innerHTML=`<b>${i+1}. ${p.label}</b>${fmt(p.price)}`; document.getElementById('steps').appendChild(s);});
+  const messages=['Price keeps respecting a visible level. Traders start watching it.','Price attacks the level. Breakout traders may now be committing.','The move fails. The crowd may be trapped.','The system creates a trade ticket. You still decide manually.','The trade is active. Risk is defined.','Target area reached in the replay. Review what happened.'];
+  document.getElementById('explain').textContent=messages[active]||replay.message;
+}
+function playReplay(){ if(!replay) return; currentStep=0; drawReplay(0); const timer=setInterval(()=>{currentStep++; if(currentStep>=replay.timeline.length){clearInterval(timer); return;} drawReplay(currentStep);},850); }
+function journal(decision){
+  const s=snapshot?.signals?.[selectedSymbol]; if(!s){alert('Fetch snapshot first.'); return;}
+  const arr=JSON.parse(localStorage.getItem(journalKey)||'[]'); arr.unshift({time:new Date().toLocaleString(),symbol:selectedSymbol,decision,score:s.score,status:s.status,direction:s.direction,price:s.price}); localStorage.setItem(journalKey,JSON.stringify(arr.slice(0,80))); renderJournal();
+}
+function renderJournal(){ const arr=JSON.parse(localStorage.getItem(journalKey)||'[]'); const box=document.getElementById('journal'); if(!arr.length){box.innerHTML='<div class="small">No entries yet.</div>';return;} box.innerHTML=arr.map(x=>`<div class="entry"><b>${x.decision}</b> · ${x.symbol} · ${x.direction}<br><span class="small">${x.time} · Score ${x.score}/100 · Price ${fmt(x.price)}</span></div>`).join(''); }
+(function init(){renderJournal();checkBridge(); const old=localStorage.getItem('lst_v5_last_snapshot'); if(old){snapshot=JSON.parse(old); renderMarkets(); renderBest(); loadReplay(selectedSymbol);} else {loadDemo();}})();
+</script>
+</body>
+</html>
