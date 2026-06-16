@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Liquidity Sweep Trader V4</title>
+<style>
+:root{--bg:#090b12;--panel:#111827;--panel2:#161b2a;--stroke:#263044;--text:#edf2ff;--muted:#93a4bf;--green:#2de38b;--red:#ff4d6d;--amber:#ffd166;--blue:#55a7ff;--purple:#b983ff;--shadow:0 24px 80px rgba(0,0,0,.4)}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top left,#17203a 0,#090b12 38%,#05060a 100%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;min-height:100vh} button,input,select{font:inherit}
+.app{max-width:1320px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}.brand{display:flex;gap:14px;align-items:center}.logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 0 40px rgba(85,167,255,.4)}h1{font-size:28px;margin:0}.sub{color:var(--muted);font-size:14px;margin-top:4px}.pill{border:1px solid var(--stroke);background:rgba(255,255,255,.05);padding:8px 12px;border-radius:999px;color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:1.05fr 1.55fr .9fr;gap:18px}.panel{background:linear-gradient(180deg,rgba(22,27,42,.94),rgba(13,17,29,.94));border:1px solid var(--stroke);border-radius:22px;box-shadow:var(--shadow);padding:18px}.panel h2{margin:0 0 14px;font-size:17px}.cards{display:grid;gap:12px}.card{border:1px solid var(--stroke);background:rgba(255,255,255,.04);border-radius:18px;padding:15px;cursor:pointer;transition:.2s}.card:hover,.card.active{border-color:var(--blue);transform:translateY(-1px)}.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.market{font-weight:800;font-size:18px}.small{font-size:12px;color:var(--muted)}.price{font-size:24px;font-weight:850;margin:10px 0 0}.signal{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}.green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--amber)}.sig-green{background:rgba(45,227,139,.13);color:var(--green)}.sig-amber{background:rgba(255,209,102,.13);color:var(--amber)}.sig-red{background:rgba(255,77,109,.13);color:var(--red)}.hero{min-height:420px;position:relative;overflow:hidden}.chart-wrap{height:300px;border-radius:18px;background:linear-gradient(180deg,rgba(85,167,255,.08),rgba(255,255,255,.02));border:1px solid var(--stroke);position:relative;margin-bottom:14px}svg{width:100%;height:100%;display:block}.timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.step{padding:10px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);font-size:12px}.step.on{border-color:var(--blue);background:rgba(85,167,255,.13)}.big-action{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}button{border:0;border-radius:14px;padding:12px 14px;color:white;background:#263044;cursor:pointer;font-weight:800}.primary{background:linear-gradient(135deg,var(--blue),var(--purple))}.danger{background:linear-gradient(135deg,var(--red),#ff8a4d)}.ticket{display:grid;gap:10px}.metric{padding:12px;border:1px solid var(--stroke);border-radius:15px;background:rgba(255,255,255,.04)}.metric b{display:block;font-size:22px;margin-top:4px}.journal{max-height:220px;overflow:auto;display:grid;gap:8px}.journal-item{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);font-size:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.note{margin-top:12px;padding:12px;border:1px solid rgba(255,209,102,.25);background:rgba(255,209,102,.08);border-radius:16px;color:#ffe8aa;font-size:13px;line-height:1.45}.footer{margin-top:18px;color:var(--muted);font-size:12px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:1050px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.timeline{grid-template-columns:1fr 1fr}.hero{min-height:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><div class="logo"></div><div><h1>Liquidity Sweep Trader V4</h1><div class="sub">Replay-first trading dashboard · IBKR Paper Trading · Option A markets</div></div></div>
+    <div class="toolbar"><span class="pill" id="bridgeStatus">Bridge: not checked</span><button class="primary" onclick="checkBridge()">Check IBKR</button><button onclick="fetchPrices()">Fetch Prices</button></div>
+  </div>
+  <div class="grid">
+    <section class="panel">
+      <h2>Market Radar</h2>
+      <div class="cards" id="cards"></div>
+      <div class="note"><b>School Run Mode:</b> the bridge can collect prices while you are away. When you return, review saved setups instead of chasing missed entries.</div>
+    </section>
+    <section class="panel hero">
+      <div class="row"><h2>Replay Centre</h2><span class="pill" id="replayLabel">Demo replay</span></div>
+      <div class="chart-wrap"><svg id="chart"></svg></div>
+      <div class="timeline" id="timeline"></div>
+      <div class="big-action"><button class="primary" onclick="playReplay()">▶ Play Replay</button><button onclick="resetReplay()">Reset</button></div>
+      <div class="note" id="explain">Press Play Replay. The dashboard will show the story: level forms → sweep → reversal → entry → target.</div>
+    </section>
+    <section class="panel">
+      <h2>Trade Ticket</h2>
+      <div class="ticket">
+        <div class="metric"><span class="small">System view</span><b id="action">WAIT</b></div>
+        <div class="split"><div class="metric"><span class="small">Score</span><b id="score">--</b></div><div class="metric"><span class="small">RR</span><b id="rr">--</b></div></div>
+        <div class="split"><div class="metric"><span class="small">Entry</span><b id="entry">--</b></div><div class="metric"><span class="small">Stop</span><b id="stop">--</b></div></div>
+        <div class="metric"><span class="small">Target</span><b id="target">--</b></div>
+        <div class="big-action"><button class="primary" onclick="logTrade('TAKE')">TAKE</button><button class="danger" onclick="logTrade('PASS')">PASS</button></div>
+      </div>
+      <h2 style="margin-top:18px">Journal</h2>
+      <div class="journal" id="journal"></div>
+    </section>
+  </div>
+  <div class="footer">This is a learning and paper-trading tool. It does not place live orders. Use tiny risk only after the paper journal proves an edge.</div>
+</div>
+<script>
+const BRIDGE='http://127.0.0.1:5050';
+let markets={NASDAQ:{name:'NASDAQ 100',price:null,signal:'WATCH',score:68},SP500:{name:'S&P 500',price:null,signal:'WAIT',score:55},EURUSD:{name:'EUR/USD',price:null,signal:'NO TRADE',score:41}};
+let replay=[{label:'Level forms',price:21800,ex:'Price keeps respecting a visible level. Traders start watching it.'},{label:'Sweep',price:21828,ex:'Price pokes above the level. Breakout traders may enter.'},{label:'Reversal',price:21795,ex:'Price falls back below the level. The breakout is now suspect.'},{label:'Entry',price:21782,ex:'The system creates a SELL ticket after the failed breakout.'},{label:'Trade active',price:21744,ex:'The trade moves away from trapped buyers.'},{label:'Target',price:21705,ex:'Target area reached. Replay complete.'}];
+let replayIndex=0, timer=null;
+function cls(score){return score>=75?'sig-green':score>=55?'sig-amber':'sig-red'}
+function renderCards(){document.getElementById('cards').innerHTML=Object.entries(markets).map(([k,m])=>`<div class="card ${k==='NASDAQ'?'active':''}" onclick="selectMarket('${k}')"><div class="row"><div class="market">${m.name}</div><span class="signal ${cls(m.score)}">${m.signal}</span></div><div class="price">${m.price??'--'}</div><div class="row"><span class="small">Score ${m.score}/100</span><span class="small">${k}</span></div></div>`).join('')}
+function selectMarket(k){document.querySelectorAll('.card').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); document.getElementById('replayLabel').textContent=markets[k].name+' replay';}
+function drawChart(upto=0){const svg=document.getElementById('chart'),w=svg.clientWidth||760,h=svg.clientHeight||300,pad=32;const vals=replay.map(p=>p.price),min=Math.min(...vals)-20,max=Math.max(...vals)+20;const x=i=>pad+i*(w-pad*2)/(replay.length-1);const y=v=>h-pad-(v-min)*(h-pad*2)/(max-min);let grid='';for(let i=0;i<4;i++){let yy=pad+i*(h-pad*2)/3;grid+=`<line x1="${pad}" y1="${yy}" x2="${w-pad}" y2="${yy}" stroke="#263044"/>`;}let path='';for(let i=0;i<=upto;i++){path+=(i?'L':'M')+x(i)+' '+y(replay[i].price)+' ';}let dots='';for(let i=0;i<replay.length;i++){dots+=`<circle cx="${x(i)}" cy="${y(replay[i].price)}" r="${i<=upto?6:4}" fill="${i<=upto?'#55a7ff':'#263044'}"/><text x="${x(i)}" y="${y(replay[i].price)-12}" fill="#93a4bf" font-size="11" text-anchor="middle">${replay[i].label}</text>`}svg.innerHTML=`${grid}<line x1="${pad}" y1="${y(21800)}" x2="${w-pad}" y2="${y(21800)}" stroke="#ffd166" stroke-dasharray="6 6"/><text x="${pad+4}" y="${y(21800)-8}" fill="#ffd166" font-size="12">session level</text><path d="${path}" fill="none" stroke="#55a7ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;}
+function renderTimeline(){document.getElementById('timeline').innerHTML=replay.map((p,i)=>`<div class="step ${i<=replayIndex?'on':''}"><b>${i+1}. ${p.label}</b><br><span class="small">${p.price}</span></div>`).join('')}
+function updateTicket(){const e=replay[3].price,s=replay[1].price+10,t=replay[5].price;document.getElementById('action').textContent='SELL NASDAQ';document.getElementById('score').textContent='84/100';document.getElementById('entry').textContent=e;document.getElementById('stop').textContent=s;document.getElementById('target').textContent=t;document.getElementById('rr').textContent='1:'+Math.abs((e-t)/(s-e)).toFixed(1)}
+function resetReplay(){clearInterval(timer);replayIndex=0;drawChart(0);renderTimeline();updateTicket();document.getElementById('explain').textContent=replay[0].ex}
+function playReplay(){clearInterval(timer);replayIndex=0;timer=setInterval(()=>{drawChart(replayIndex);renderTimeline();document.getElementById('explain').textContent=replay[replayIndex].ex;if(replayIndex++>=replay.length-1)clearInterval(timer)},950)}
+async function checkBridge(){try{const r=await fetch(BRIDGE+'/status');const j=await r.json();document.getElementById('bridgeStatus').textContent=j.connected?'Bridge: connected to TWS':'Bridge: not connected';document.getElementById('bridgeStatus').className='pill '+(j.connected?'green':'red')}catch(e){document.getElementById('bridgeStatus').textContent='Bridge: offline';document.getElementById('bridgeStatus').className='pill red'}}
+async function fetchPrices(){try{const r=await fetch(BRIDGE+'/api/prices');const j=await r.json();Object.entries(j.results).forEach(([k,v])=>{if(markets[k]){markets[k].price=v.price??'No data';markets[k].source=v.source||v.error||''}});renderCards()}catch(e){alert('Bridge not reachable. Start ibkr_bridge_v4.py first.')}}
+function logTrade(decision){const now=new Date().toLocaleString();let items=JSON.parse(localStorage.getItem('journal-v4')||'[]');items.unshift({decision,market:'NASDAQ',action:document.getElementById('action').textContent,score:document.getElementById('score').textContent,time:now});localStorage.setItem('journal-v4',JSON.stringify(items.slice(0,20)));renderJournal()}
+function renderJournal(){let items=JSON.parse(localStorage.getItem('journal-v4')||'[]');document.getElementById('journal').innerHTML=items.length?items.map(x=>`<div class="journal-item"><b>${x.decision}</b> · ${x.market} · ${x.action}<br><span class="small">${x.score} · ${x.time}</span></div>`).join(''):'<div class="small">No journal entries yet.</div>'}
+renderCards();resetReplay();renderJournal();
+</script>
+</body>
+</html>
