@@ -1,0 +1,8 @@
+{
+  "capital": 100,
+  "risk_per_trade": 1,
+  "max_daily_loss": 3,
+  "minimum_score": 75,
+  "markets": ["NASDAQ 100", "S&P 500", "EUR/USD"],
+  "mode": "learning_only"
+}
